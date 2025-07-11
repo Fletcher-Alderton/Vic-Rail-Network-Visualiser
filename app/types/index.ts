@@ -60,12 +60,12 @@ export const railwayTypes: Record<string, FeatureTypeInfo> = {
   'rail_dismantled': { label: 'Rail Dismantled', color: '#94a3b8', icon: '🚆' },
   'rail_tourist': { label: 'Rail Tourist', color: '#f97316', icon: '🛤️' },
   'marshalling_yard_rail': { label: 'Marshalling Yard Rail', color: '#8b5cf6', icon: '🚃' },
-  'rail_disused': { label: 'Disused Railways', color: '#6b7280', icon: '🛤️' },
+  'rail_disused': { label: 'Disused Railways', color: '#92400e', icon: '🛤️' },
   'tramway': { label: 'Tramway', color: '#06b6d4', icon: '🚇' },
   'tunnel_rail_o': { label: 'Railway Tunnels', color: '#374151', icon: '🛤️' },
   'rail_siding': { label: 'Rail Siding', color: '#65a30d', icon: '🛤️' },
   'bridge_rail_dm': { label: 'Bridge Rail Dm', color: '#dc2626', icon: '🏗️' },
-  'bridge_rail_du': { label: 'Railway Bridges (Under)', color: '#f59e0b', icon: '🌉' },
+  'bridge_rail_du': { label: 'Railway Bridges (Under)', color: '#ea580c', icon: '🌉' },
   'bridge_rail_o': { label: 'Railway Bridges', color: '#f59e0b', icon: '🌉' },
   'rail_uground_o': { label: 'Underground Railways', color: '#7c3aed', icon: '⚡' },
   'tunnel_rail_dm': { label: 'Tunnel Rail Dm', color: '#475569', icon: '🛤️' },
@@ -73,10 +73,10 @@ export const railwayTypes: Record<string, FeatureTypeInfo> = {
 };
 
 export const infrastructureTypes: Record<string, FeatureTypeInfo> = {
-  'tram_station': { label: 'Tram Station', color: '#7c3aed', icon: '🚪' },
+  'tram_station': { label: 'Tram Station', color: '#a855f7', icon: '🚪' },
   'rail_station': { label: 'Rail Stations', color: '#059669', icon: '🚉' },
-  'bridge_rail_o': { label: 'Rail Bridges (Over)', color: '#f59e0b', icon: '🌉' },
-  'bridge_rail_du': { label: 'Rail Bridges (Double Under)', color: '#dc2626', icon: '🏗️' },
-  'bridge_rail_dm': { label: 'Rail Bridges (Double Main)', color: '#8b5cf6', icon: '🌁' },
-  'tunnel_rail_o': { label: 'Rail Tunnels (Over)', color: '#6b7280', icon: '🕳️' },
+  'bridge_rail_o': { label: 'Rail Bridges (Over)', color: '#eab308', icon: '🌉' },
+  'bridge_rail_du': { label: 'Rail Bridges (Double Under)', color: '#e11d48', icon: '🏗️' },
+  'bridge_rail_dm': { label: 'Rail Bridges (Double Main)', color: '#c026d3', icon: '🌁' },
+  'tunnel_rail_o': { label: 'Rail Tunnels (Over)', color: '#0891b2', icon: '🕳️' },
 }; 

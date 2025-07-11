@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import { useTheme } from 'next-themes';
 import { useTrainData } from '../hooks/useTrainData';
 import { useFilters } from '../hooks/useFilters';
+import { railwayTypes, infrastructureTypes } from '../types';
 import Sidebar from './Sidebar';
 import Loading from './Loading';
 
@@ -78,39 +79,37 @@ const TrainLinesMap = React.memo(() => {
     };
   }, [stopsData, infrastructureFilters]);
 
-  // Styling with different colors for proper vs problematic features
+  // Styling using colors from type mappings
   const getLineStyle = (feature: any) => {
-    const hasProperName = feature.properties.name && 
-                         feature.properties.name.trim() !== "" && 
-                         feature.properties.name !== "Active Train Line";
+    const featureType = feature.properties.feature_type_code;
+    const typeInfo = railwayTypes[featureType];
     
-    // Adjust colors for dark mode
-    const properColor = theme === 'dark' ? '#60a5fa' : '#2563eb'; // Lighter blue in dark mode
-    const problematicColor = theme === 'dark' ? '#f87171' : '#dc2626'; // Lighter red in dark mode
+    // Use the color from type mappings, fallback to red for unknown types
+    const color = typeInfo ? typeInfo.color : '#dc2626';
     
     return {
-      color: hasProperName ? properColor : problematicColor,
+      color: color,
       weight: 2,
       opacity: 0.8,
     };
   };
 
-  // Popup with identification of problematic data
+  // Popup with type information from mappings
   const onEachFeature = (feature: any, layer: any) => {
     const props = feature.properties;
-    const hasProperName = props.name && 
-                         props.name.trim() !== "" && 
-                         props.name !== "Active Train Line";
+    const featureType = props.feature_type_code;
+    const typeInfo = railwayTypes[featureType];
     
-    const displayName = hasProperName ? props.name : 'Unnamed Railway (Data Error)';
-    const statusIcon = hasProperName ? '🚊' : '⚠️';
+    const displayName = props.name && props.name.trim() !== "" && props.name !== "Active Train Line" 
+      ? props.name 
+      : 'Unnamed Railway';
+    
+    const typeLabel = typeInfo ? typeInfo.label : featureType.replace('_', ' ');
+    const typeIcon = typeInfo ? typeInfo.icon : '🛤️';
     
     // Theme-aware colors for accessibility
-    const titleColor = hasProperName 
-      ? 'hsl(var(--popover-foreground))' 
-      : (theme === 'dark' ? '#fca5a5' : '#dc2626'); // Light red in dark mode, normal red in light
+    const titleColor = 'hsl(var(--popover-foreground))';
     const textColor = 'hsl(var(--muted-foreground))';
-    const errorColor = theme === 'dark' ? '#fca5a5' : '#dc2626'; // Accessible red for both themes
     
     const popupContent = `
       <div style="font-family: system-ui; max-width: 200px;">
@@ -118,10 +117,10 @@ const TrainLinesMap = React.memo(() => {
           ${displayName}
         </h3>
         <div style="font-size: 12px; color: ${textColor};">
-          ${statusIcon} ${hasProperName ? 'Named Railway' : 'Data Error - Missing Name'}
+          ${typeIcon} ${typeLabel}
           ${props.rail_gauge ? ` • ${props.rail_gauge}` : ''}
         </div>
-        ${!hasProperName ? '<div style="font-size: 11px; color: ' + errorColor + '; margin-top: 4px;">Type: ' + props.feature_type_code + '</div>' : ''}
+        ${props.physical_condition ? '<div style="font-size: 11px; color: ' + textColor + '; margin-top: 4px;">Condition: ' + props.physical_condition + '</div>' : ''}
       </div>
     `;
     layer.bindPopup(popupContent);
@@ -130,29 +129,14 @@ const TrainLinesMap = React.memo(() => {
   // Get marker style for stops based on type
   const getStopMarkerStyle = (feature: any) => {
     const featureType = feature.properties.feature_type_code;
+    const typeInfo = infrastructureTypes[featureType];
     
-    // Color mapping for different feature types - adjusted for dark mode
-    const colorMap: { [key: string]: string } = theme === 'dark' ? {
-      'rail_station': '#10b981',     // Brighter green for rail stations
-      'tram_station': '#8b5cf6',     // Brighter purple for tram stations
-      'bridge_rail_dm': '#fbbf24',   // Brighter amber for bridge rail double main
-      'bridge_rail_du': '#fbbf24',   // Brighter amber for bridge rail double under
-      'bridge_rail_o': '#fbbf24',    // Brighter amber for bridge rail over
-      'tunnel_rail_o': '#9ca3af',    // Lighter gray for tunnel rail over
-    } : {
-      'rail_station': '#059669',     // Green for rail stations
-      'tram_station': '#7c3aed',     // Purple for tram stations
-      'bridge_rail_dm': '#f59e0b',   // Amber for bridge rail double main
-      'bridge_rail_du': '#f59e0b',   // Amber for bridge rail double under
-      'bridge_rail_o': '#f59e0b',    // Amber for bridge rail over
-      'tunnel_rail_o': '#6b7280',    // Gray for tunnel rail over
-    };
-    
+    // Use the color from type mappings, fallback to red for unknown types
+    const fillColor = typeInfo ? typeInfo.color : '#ef4444';
     const borderColor = theme === 'dark' ? '#374151' : '#ffffff';
-    const fallbackColor = theme === 'dark' ? '#f87171' : '#ef4444';
     
     return {
-      fillColor: colorMap[featureType] || fallbackColor,
+      fillColor: fillColor,
       color: borderColor,
       weight: 2,
       opacity: 1,
@@ -252,17 +236,12 @@ const TrainLinesMap = React.memo(() => {
            const props = feature.properties;
            const displayName = props.name || 'Unnamed Infrastructure';
            
-           // Get appropriate type display and icon
+           // Get appropriate type display and icon from type mappings
            const getTypeInfo = (featureType: string) => {
-             const typeMap: { [key: string]: { display: string; icon: string } } = {
-               'rail_station': { display: 'Rail Station', icon: '🚂' },
-               'tram_station': { display: 'Tram Station', icon: '🚋' },
-               'bridge_rail_dm': { display: 'Rail Bridge (Double Main)', icon: '🌉' },
-               'bridge_rail_du': { display: 'Rail Bridge (Double Under)', icon: '🌉' },
-               'bridge_rail_o': { display: 'Rail Bridge (Over)', icon: '🌉' },
-               'tunnel_rail_o': { display: 'Rail Tunnel (Over)', icon: '🚇' },
-             };
-             return typeMap[featureType] || { display: featureType.replace('_', ' '), icon: '📍' };
+             const typeInfo = infrastructureTypes[featureType];
+             return typeInfo ? 
+               { display: typeInfo.label, icon: typeInfo.icon } : 
+               { display: featureType.replace('_', ' '), icon: '📍' };
            };
            
            const typeInfo = getTypeInfo(props.feature_type_code);
