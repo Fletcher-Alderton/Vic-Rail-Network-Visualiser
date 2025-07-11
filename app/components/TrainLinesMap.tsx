@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
+import { useTheme } from 'next-themes';
 import { useTrainData } from '../hooks/useTrainData';
 import { useFilters } from '../hooks/useFilters';
-import FilterPanel from './FilterPanel';
-import InfoOverlay from './InfoOverlay';
+import Sidebar from './Sidebar';
+import Loading from './Loading';
 
 // Dynamic import to avoid SSR issues with Leaflet
 const MapContainer = dynamic(
@@ -35,7 +36,7 @@ const ZoomControl = dynamic(
 );
 
 const TrainLinesMap = () => {
-  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const { theme } = useTheme();
   
   // Use custom hooks for data and filters
   const { trainData, stopsData, loading, error } = useTrainData();
@@ -50,14 +51,45 @@ const TrainLinesMap = () => {
     getFilteredStopsData
   } = useFilters(trainData, stopsData);
 
+  // Get filtered data for rendering - use useMemo to make it reactive to filter changes
+  const filteredTrainData = useMemo(() => {
+    if (!trainData) return null;
+    
+    const filteredFeatures = trainData.features.filter(feature => 
+      railwayFilters[feature.properties.feature_type_code] === true
+    );
+    
+    return {
+      ...trainData,
+      features: filteredFeatures
+    };
+  }, [trainData, railwayFilters]);
+
+  const filteredStopsData = useMemo(() => {
+    if (!stopsData) return null;
+    
+    const filteredFeatures = stopsData.features.filter(feature => 
+      infrastructureFilters[feature.properties.feature_type_code] === true
+    );
+    
+    return {
+      ...stopsData,
+      features: filteredFeatures
+    };
+  }, [stopsData, infrastructureFilters]);
+
   // Styling with different colors for proper vs problematic features
   const getLineStyle = (feature: any) => {
     const hasProperName = feature.properties.name && 
                          feature.properties.name.trim() !== "" && 
                          feature.properties.name !== "Active Train Line";
     
+    // Adjust colors for dark mode
+    const properColor = theme === 'dark' ? '#60a5fa' : '#2563eb'; // Lighter blue in dark mode
+    const problematicColor = theme === 'dark' ? '#f87171' : '#dc2626'; // Lighter red in dark mode
+    
     return {
-      color: hasProperName ? '#2563eb' : '#dc2626', // Blue for proper names, red for problematic
+      color: hasProperName ? properColor : problematicColor,
       weight: 2,
       opacity: 0.8,
     };
@@ -72,18 +104,24 @@ const TrainLinesMap = () => {
     
     const displayName = hasProperName ? props.name : 'Unnamed Railway (Data Error)';
     const statusIcon = hasProperName ? '🚊' : '⚠️';
-    const statusColor = hasProperName ? '#1f2937' : '#dc2626';
+    
+    // Theme-aware colors for accessibility
+    const titleColor = hasProperName 
+      ? 'hsl(var(--popover-foreground))' 
+      : (theme === 'dark' ? '#fca5a5' : '#dc2626'); // Light red in dark mode, normal red in light
+    const textColor = 'hsl(var(--muted-foreground))';
+    const errorColor = theme === 'dark' ? '#fca5a5' : '#dc2626'; // Accessible red for both themes
     
     const popupContent = `
       <div style="font-family: system-ui; max-width: 200px;">
-        <h3 style="margin: 0 0 8px 0; font-size: 14px; color: ${statusColor};">
+        <h3 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: ${titleColor};">
           ${displayName}
         </h3>
-        <div style="font-size: 12px; color: #6b7280;">
+        <div style="font-size: 12px; color: ${textColor};">
           ${statusIcon} ${hasProperName ? 'Named Railway' : 'Data Error - Missing Name'}
           ${props.rail_gauge ? ` • ${props.rail_gauge}` : ''}
         </div>
-        ${!hasProperName ? '<div style="font-size: 11px; color: #dc2626; margin-top: 4px;">Type: ' + props.feature_type_code + '</div>' : ''}
+        ${!hasProperName ? '<div style="font-size: 11px; color: ' + errorColor + '; margin-top: 4px;">Type: ' + props.feature_type_code + '</div>' : ''}
       </div>
     `;
     layer.bindPopup(popupContent);
@@ -93,8 +131,15 @@ const TrainLinesMap = () => {
   const getStopMarkerStyle = (feature: any) => {
     const featureType = feature.properties.feature_type_code;
     
-    // Color mapping for different feature types
-    const colorMap: { [key: string]: string } = {
+    // Color mapping for different feature types - adjusted for dark mode
+    const colorMap: { [key: string]: string } = theme === 'dark' ? {
+      'rail_station': '#10b981',     // Brighter green for rail stations
+      'tram_station': '#8b5cf6',     // Brighter purple for tram stations
+      'bridge_rail_dm': '#fbbf24',   // Brighter amber for bridge rail double main
+      'bridge_rail_du': '#fbbf24',   // Brighter amber for bridge rail double under
+      'bridge_rail_o': '#fbbf24',    // Brighter amber for bridge rail over
+      'tunnel_rail_o': '#9ca3af',    // Lighter gray for tunnel rail over
+    } : {
       'rail_station': '#059669',     // Green for rail stations
       'tram_station': '#7c3aed',     // Purple for tram stations
       'bridge_rail_dm': '#f59e0b',   // Amber for bridge rail double main
@@ -103,9 +148,12 @@ const TrainLinesMap = () => {
       'tunnel_rail_o': '#6b7280',    // Gray for tunnel rail over
     };
     
+    const borderColor = theme === 'dark' ? '#374151' : '#ffffff';
+    const fallbackColor = theme === 'dark' ? '#f87171' : '#ef4444';
+    
     return {
-      fillColor: colorMap[featureType] || '#ef4444', // Red for unknown types
-      color: '#ffffff',
+      fillColor: colorMap[featureType] || fallbackColor,
+      color: borderColor,
       weight: 2,
       opacity: 1,
       fillOpacity: 0.8
@@ -130,11 +178,7 @@ const TrainLinesMap = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-lg text-gray-600">Loading train lines and stops...</div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error) {
@@ -153,20 +197,15 @@ const TrainLinesMap = () => {
     );
   }
 
-  // Get filtered data for rendering
-  const filteredTrainData = getFilteredTrainData();
-  const filteredStopsData = getFilteredStopsData();
-
   // Center on Victoria, Australia
   const center: [number, number] = [-37.8136, 144.9631];
   const zoom = 7;
 
   return (
     <div className="w-full h-screen relative">
-      {/* Filter Panel Component */}
-      <FilterPanel
-        showFilterPanel={showFilterPanel}
-        setShowFilterPanel={setShowFilterPanel}
+      
+      {/* Sidebar Component */}
+      <Sidebar
         railwayFilters={railwayFilters}
         infrastructureFilters={infrastructureFilters}
         toggleRailwayFilter={toggleRailwayFilter}
@@ -178,30 +217,29 @@ const TrainLinesMap = () => {
         infrastructureCount={filteredStopsData?.features.length || 0}
         totalInfrastructureCount={stopsData?.features.length || 0}
       />
-
-      {/* Info Overlay Component */}
-      <InfoOverlay
-        railwayCount={filteredTrainData?.features.length || 0}
-        infrastructureCount={filteredStopsData?.features.length || 0}
-      />
       
       <MapContainer
         center={center}
         zoom={zoom}
         style={{ height: '100vh', width: '100%' }}
-        className="bg-gray-50"
+        className="bg-gray-50 dark:bg-gray-900"
         zoomControl={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          url={
+            theme === 'dark'
+              ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          }
         />
         
         <ZoomControl position="bottomright" />
         
-                {/* Render railway lines */}
+        {/* Render railway lines */}
         {filteredTrainData && filteredTrainData.features.length > 0 && (
           <GeoJSON
+            key={`railway-${filteredTrainData.features.length}-${JSON.stringify(railwayFilters)}`}
             data={filteredTrainData}
             style={getLineStyle}
             onEachFeature={onEachFeature}
@@ -233,21 +271,33 @@ const TrainLinesMap = () => {
            
            return (
              <CircleMarker
-               key={`stop-${feature.id}-${index}`}
+               key={`stop-${feature.id || index}-${feature.properties.feature_type_code}-${index}-${JSON.stringify(infrastructureFilters).slice(0, 50)}`}
                center={[coords[1], coords[0]]} // Note: GeoJSON uses [lng, lat], Leaflet uses [lat, lng]
                radius={getStopMarkerRadius(feature)}
                pathOptions={getStopMarkerStyle(feature)}
              >
                <Popup>
                  <div style={{ fontFamily: 'system-ui', maxWidth: '200px' }}>
-                   <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#1f2937' }}>
+                   <h3 style={{ 
+                     margin: '0 0 8px 0', 
+                     fontSize: '14px', 
+                     fontWeight: '600',
+                     color: 'hsl(var(--popover-foreground))' 
+                   }}>
                      {displayName}
                    </h3>
-                   <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                   <div style={{ 
+                     fontSize: '12px', 
+                     color: 'hsl(var(--muted-foreground))' 
+                   }}>
                      {stationIcon} {stationType}
                    </div>
                    {props.physical_condition && (
-                     <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                     <div style={{ 
+                       fontSize: '11px', 
+                       color: 'hsl(var(--muted-foreground))', 
+                       marginTop: '4px' 
+                     }}>
                        Condition: {props.physical_condition}
                      </div>
                    )}
