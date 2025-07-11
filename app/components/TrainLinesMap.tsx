@@ -149,18 +149,20 @@ const TrainLinesMap = React.memo(() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStopMarkerRadius = (feature: any) => {
     const featureType = feature.properties.feature_type_code;
+    const minRadius = 6; // Minimum point size for visibility and interaction
     
     // Size mapping for different feature types
     const sizeMap: { [key: string]: number } = {
       'rail_station': 6,
-      'tram_station': 5,
-      'bridge_rail_dm': 4,
-      'bridge_rail_du': 4,
-      'bridge_rail_o': 4,
-      'tunnel_rail_o': 4,
+      'tram_station': 6,
+      'bridge_rail_dm': 6,
+      'bridge_rail_du': 6,
+      'bridge_rail_o': 6,
+      'tunnel_rail_o': 6,
     };
     
-    return sizeMap[featureType] || 3; // Default size for unknown types
+    const radius = sizeMap[featureType] || 6; // Default size for unknown types
+    return Math.max(radius, minRadius); // Ensure minimum size
   };
 
   if (loading) {
