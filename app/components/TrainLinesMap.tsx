@@ -199,9 +199,7 @@ const TrainLinesMap = React.memo(() => {
         toggleAllRailway={toggleAllRailway}
         toggleAllInfrastructure={toggleAllInfrastructure}
         railwayCount={filteredTrainData?.features.length || 0}
-        totalRailwayCount={trainData?.features.length || 0}
         infrastructureCount={filteredStopsData?.features.length || 0}
-        totalInfrastructureCount={stopsData?.features.length || 0}
       />
       
       <MapContainer

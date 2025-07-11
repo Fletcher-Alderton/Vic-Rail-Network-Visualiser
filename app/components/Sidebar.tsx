@@ -18,9 +18,7 @@ interface SidebarProps {
   toggleAllRailway: (enabled: boolean) => void;
   toggleAllInfrastructure: (enabled: boolean) => void;
   railwayCount: number;
-  totalRailwayCount: number;
   infrastructureCount: number;
-  totalInfrastructureCount: number;
 }
 
 const Sidebar = React.memo(({
@@ -31,9 +29,7 @@ const Sidebar = React.memo(({
   toggleAllRailway,
   toggleAllInfrastructure,
   railwayCount,
-  totalRailwayCount,
   infrastructureCount,
-  totalInfrastructureCount,
 }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
