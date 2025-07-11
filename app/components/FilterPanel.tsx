@@ -7,8 +7,6 @@ import { Separator } from '@/components/ui/separator';
 import { Train, MapPin, Filter, CheckSquare, Square } from 'lucide-react';
 
 interface FilterPanelProps {
-  showFilterPanel: boolean;
-  setShowFilterPanel: (show: boolean) => void;
   railwayFilters: FilterState;
   infrastructureFilters: FilterState;
   toggleRailwayFilter: (type: string) => void;
@@ -16,9 +14,7 @@ interface FilterPanelProps {
   toggleAllRailway: (enabled: boolean) => void;
   toggleAllInfrastructure: (enabled: boolean) => void;
   railwayCount: number;
-  totalRailwayCount: number;
   infrastructureCount: number;
-  totalInfrastructureCount: number;
 }
 
 // Get feature type info with fallback
@@ -91,8 +87,6 @@ const ScrollFadeContainer = ({ children, className = '' }: ScrollFadeContainerPr
 };
 
 const FilterPanel = React.memo(({
-  showFilterPanel,
-  setShowFilterPanel,
   railwayFilters,
   infrastructureFilters,
   toggleRailwayFilter,
@@ -100,9 +94,7 @@ const FilterPanel = React.memo(({
   toggleAllRailway,
   toggleAllInfrastructure,
   railwayCount,
-  totalRailwayCount,
   infrastructureCount,
-  totalInfrastructureCount,
 }: FilterPanelProps) => {
   const railwayFilterCount = Object.values(railwayFilters).filter(Boolean).length;
   const infrastructureFilterCount = Object.values(infrastructureFilters).filter(Boolean).length;
@@ -256,5 +248,7 @@ const FilterPanel = React.memo(({
     </div>
   );
 });
+
+FilterPanel.displayName = 'FilterPanel';
 
 export default FilterPanel; 

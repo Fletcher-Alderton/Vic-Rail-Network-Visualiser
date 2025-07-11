@@ -24,7 +24,7 @@ const getCachedData = <T>(key: string): T | null => {
     }
     
     return entry.data;
-  } catch (error) {
+  } catch {
     localStorage.removeItem(key);
     return null;
   }
@@ -37,7 +37,7 @@ const setCachedData = <T>(key: string, data: T): void => {
       timestamp: Date.now()
     };
     localStorage.setItem(key, JSON.stringify(entry));
-  } catch (error) {
+  } catch {
     // If localStorage is full or unavailable, continue without caching
   }
 };
@@ -63,6 +63,7 @@ export const useTrainData = () => {
         }
         
         // Fetch data if not cached or expired
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const promises: Promise<any>[] = [];
         
         if (!cachedTrainData) {
@@ -101,7 +102,8 @@ export const useTrainData = () => {
       const apiUrl = 
         "https://services6.arcgis.com/GB33F62SbDxJjwEL/ArcGIS/rest/services/Vicmap_Transport/FeatureServer/3/query";
       
-      let allFeatures: any[] = [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const allFeatures: any[] = [];
       let offset = 0;
       const batchSize = 2000;
       let hasMoreData = true;
@@ -147,7 +149,8 @@ export const useTrainData = () => {
       const apiUrl = 
         "https://services6.arcgis.com/GB33F62SbDxJjwEL/ArcGIS/rest/services/Vicmap_Transport/FeatureServer/2/query";
       
-      let allFeatures: any[] = [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const allFeatures: any[] = [];
       let offset = 0;
       const batchSize = 2000;
       let hasMoreData = true;

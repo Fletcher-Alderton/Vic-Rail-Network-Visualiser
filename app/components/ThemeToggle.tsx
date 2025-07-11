@@ -41,4 +41,6 @@ const ThemeToggle = React.memo(() => {
   );
 });
 
+ThemeToggle.displayName = 'ThemeToggle';
+
 export { ThemeToggle }; 

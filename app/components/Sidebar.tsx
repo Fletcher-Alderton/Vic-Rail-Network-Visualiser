@@ -7,8 +7,7 @@ import InfoOverlay from './InfoOverlay';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { ChevronLeft, ChevronRight, Train, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Train } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
 interface SidebarProps {
@@ -91,8 +90,6 @@ const Sidebar = React.memo(({
               <Card className="rounded-none border-0 shadow-none">
                 <CardContent className="pt-6">
                   <FilterPanel
-                    showFilterPanel={true}
-                    setShowFilterPanel={() => {}}
                     railwayFilters={railwayFilters}
                     infrastructureFilters={infrastructureFilters}
                     toggleRailwayFilter={toggleRailwayFilter}
@@ -100,9 +97,7 @@ const Sidebar = React.memo(({
                     toggleAllRailway={toggleAllRailway}
                     toggleAllInfrastructure={toggleAllInfrastructure}
                     railwayCount={railwayCount}
-                    totalRailwayCount={totalRailwayCount}
                     infrastructureCount={infrastructureCount}
-                    totalInfrastructureCount={totalInfrastructureCount}
                   />
                 </CardContent>
               </Card>
@@ -124,5 +119,7 @@ const Sidebar = React.memo(({
     </>
   );
 });
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar; 

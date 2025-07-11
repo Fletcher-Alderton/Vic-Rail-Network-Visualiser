@@ -147,4 +147,6 @@ const Loading = React.memo(() => {
   );
 });
 
+Loading.displayName = 'Loading';
+
 export default Loading; 

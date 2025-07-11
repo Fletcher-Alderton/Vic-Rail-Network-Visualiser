@@ -18,6 +18,7 @@ export interface TrainLineData {
       rail_gauge: string | null;
       tourist_type: string;
       Shape__Length: number;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       [key: string]: any;
     };
   }>;
@@ -37,6 +38,7 @@ export interface StopsData {
       feature_type_code: string;
       name: string | null;
       physical_condition?: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       [key: string]: any;
     };
   }>;

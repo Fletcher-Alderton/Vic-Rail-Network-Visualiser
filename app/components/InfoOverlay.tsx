@@ -43,4 +43,6 @@ const InfoOverlay = React.memo(({ railwayCount, infrastructureCount }: InfoOverl
   );
 });
 
+InfoOverlay.displayName = 'InfoOverlay';
+
 export default InfoOverlay; 

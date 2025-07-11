@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
 import { useTheme } from 'next-themes';
@@ -47,9 +47,7 @@ const TrainLinesMap = React.memo(() => {
     toggleRailwayFilter,
     toggleInfrastructureFilter,
     toggleAllRailway,
-    toggleAllInfrastructure,
-    getFilteredTrainData,
-    getFilteredStopsData
+    toggleAllInfrastructure
   } = useFilters(trainData, stopsData);
 
   // Get filtered data for rendering - use useMemo to make it reactive to filter changes
@@ -80,6 +78,7 @@ const TrainLinesMap = React.memo(() => {
   }, [stopsData, infrastructureFilters]);
 
   // Styling using colors from type mappings
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getLineStyle = (feature: any) => {
     const featureType = feature.properties.feature_type_code;
     const typeInfo = railwayTypes[featureType];
@@ -95,6 +94,7 @@ const TrainLinesMap = React.memo(() => {
   };
 
   // Popup with type information from mappings
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onEachFeature = (feature: any, layer: any) => {
     const props = feature.properties;
     const featureType = props.feature_type_code;
@@ -127,6 +127,7 @@ const TrainLinesMap = React.memo(() => {
   };
 
   // Get marker style for stops based on type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStopMarkerStyle = (feature: any) => {
     const featureType = feature.properties.feature_type_code;
     const typeInfo = infrastructureTypes[featureType];
@@ -145,6 +146,7 @@ const TrainLinesMap = React.memo(() => {
   };
 
   // Get marker radius for stops based on type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getStopMarkerRadius = (feature: any) => {
     const featureType = feature.properties.feature_type_code;
     
@@ -289,5 +291,7 @@ const TrainLinesMap = React.memo(() => {
     </div>
   );
 });
+
+TrainLinesMap.displayName = 'TrainLinesMap';
 
 export default TrainLinesMap;
