@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Loading() {
+const Loading = React.memo(() => {
   return (
     <div className="loading-page">
       <div className="loading-content">
@@ -145,4 +145,6 @@ export default function Loading() {
       `}</style>
     </div>
   );
-} 
+});
+
+export default Loading; 

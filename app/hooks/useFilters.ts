@@ -18,8 +18,7 @@ export const useFilters = (trainData: TrainLineData | null, stopsData: StopsData
     const trainTypes = [...new Set(trainData.features.map(f => f.properties.feature_type_code))];
     const stopTypes = [...new Set(stopsData.features.map(f => f.properties.feature_type_code))];
     
-    console.log('Found railway types:', trainTypes);
-    console.log('Found infrastructure types:', stopTypes);
+
     
     // Initialize all filters as enabled
     const initialRailwayFilters: FilterState = {};

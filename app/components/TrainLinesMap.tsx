@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
 import { useTheme } from 'next-themes';
@@ -35,7 +35,7 @@ const ZoomControl = dynamic(
   { ssr: false }
 );
 
-const TrainLinesMap = () => {
+const TrainLinesMap = React.memo(() => {
   const { theme } = useTheme();
   
   // Use custom hooks for data and filters
@@ -239,7 +239,7 @@ const TrainLinesMap = () => {
         {/* Render railway lines */}
         {filteredTrainData && filteredTrainData.features.length > 0 && (
           <GeoJSON
-            key={`railway-${filteredTrainData.features.length}-${JSON.stringify(railwayFilters)}`}
+            key={`railway-${filteredTrainData.features.length}-${Object.values(railwayFilters).filter(Boolean).length}`}
             data={filteredTrainData}
             style={getLineStyle}
             onEachFeature={onEachFeature}
@@ -271,7 +271,7 @@ const TrainLinesMap = () => {
            
            return (
              <CircleMarker
-               key={`stop-${feature.id || index}-${feature.properties.feature_type_code}-${index}-${JSON.stringify(infrastructureFilters).slice(0, 50)}`}
+               key={`stop-${feature.id || index}-${feature.properties.feature_type_code}-${infrastructureFilters[feature.properties.feature_type_code] ? 'visible' : 'hidden'}`}
                center={[coords[1], coords[0]]} // Note: GeoJSON uses [lng, lat], Leaflet uses [lat, lng]
                radius={getStopMarkerRadius(feature)}
                pathOptions={getStopMarkerStyle(feature)}
@@ -309,6 +309,6 @@ const TrainLinesMap = () => {
       </MapContainer>
     </div>
   );
-};
+});
 
 export default TrainLinesMap;

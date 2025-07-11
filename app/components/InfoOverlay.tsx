@@ -1,3 +1,4 @@
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Train, MapPin, Activity } from 'lucide-react';
 
@@ -6,7 +7,7 @@ interface InfoOverlayProps {
   infrastructureCount: number;
 }
 
-const InfoOverlay = ({ railwayCount, infrastructureCount }: InfoOverlayProps) => {
+const InfoOverlay = React.memo(({ railwayCount, infrastructureCount }: InfoOverlayProps) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-3">
@@ -40,6 +41,6 @@ const InfoOverlay = ({ railwayCount, infrastructureCount }: InfoOverlayProps) =>
       </div>
     </div>
   );
-};
+});
 
 export default InfoOverlay; 

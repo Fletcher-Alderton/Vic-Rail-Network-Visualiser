@@ -1,10 +1,10 @@
+import React, { useState, useRef, useEffect } from 'react';
 import { FilterState, railwayTypes, infrastructureTypes, FeatureTypeInfo } from '../types';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Train, MapPin, Filter, CheckSquare, Square } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
 
 interface FilterPanelProps {
   showFilterPanel: boolean;
@@ -90,7 +90,7 @@ const ScrollFadeContainer = ({ children, className = '' }: ScrollFadeContainerPr
   );
 };
 
-const FilterPanel = ({
+const FilterPanel = React.memo(({
   showFilterPanel,
   setShowFilterPanel,
   railwayFilters,
@@ -255,6 +255,6 @@ const FilterPanel = ({
       </div>
     </div>
   );
-};
+});
 
 export default FilterPanel; 

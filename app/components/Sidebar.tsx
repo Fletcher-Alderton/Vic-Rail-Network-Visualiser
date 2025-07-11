@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { FilterState } from '../types';
 import FilterPanel from './FilterPanel';
 import InfoOverlay from './InfoOverlay';
@@ -24,7 +24,7 @@ interface SidebarProps {
   totalInfrastructureCount: number;
 }
 
-const Sidebar = ({
+const Sidebar = React.memo(({
   railwayFilters,
   infrastructureFilters,
   toggleRailwayFilter,
@@ -123,6 +123,6 @@ const Sidebar = ({
       )}
     </>
   );
-};
+});
 
 export default Sidebar; 

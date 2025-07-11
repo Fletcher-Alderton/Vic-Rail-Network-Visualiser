@@ -1,6 +1,47 @@
 import { useState, useEffect } from 'react';
 import { TrainLineData, StopsData } from '../types';
 
+// Cache duration in milliseconds (1 hour)
+const CACHE_DURATION = 60 * 60 * 1000;
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+// Helper functions for caching
+const getCachedData = <T>(key: string): T | null => {
+  try {
+    const cached = localStorage.getItem(key);
+    if (!cached) return null;
+    
+    const entry: CacheEntry<T> = JSON.parse(cached);
+    const now = Date.now();
+    
+    if (now - entry.timestamp > CACHE_DURATION) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    
+    return entry.data;
+  } catch (error) {
+    localStorage.removeItem(key);
+    return null;
+  }
+};
+
+const setCachedData = <T>(key: string, data: T): void => {
+  try {
+    const entry: CacheEntry<T> = {
+      data,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(key, JSON.stringify(entry));
+  } catch (error) {
+    // If localStorage is full or unavailable, continue without caching
+  }
+};
+
 export const useTrainData = () => {
   const [trainData, setTrainData] = useState<TrainLineData | null>(null);
   const [stopsData, setStopsData] = useState<StopsData | null>(null);
@@ -10,18 +51,47 @@ export const useTrainData = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        // Fetch both train lines and stops in parallel
-        const [trainDataResult, stopsDataResult] = await Promise.all([
-          fetchTrainData(),
-          fetchStopsData()
-        ]);
+        // Check cache first
+        const cachedTrainData = getCachedData<TrainLineData>('trainData');
+        const cachedStopsData = getCachedData<StopsData>('stopsData');
+        
+        if (cachedTrainData && cachedStopsData) {
+          setTrainData(cachedTrainData);
+          setStopsData(cachedStopsData);
+          setLoading(false);
+          return;
+        }
+        
+        // Fetch data if not cached or expired
+        const promises: Promise<any>[] = [];
+        
+        if (!cachedTrainData) {
+          promises.push(fetchTrainData());
+        } else {
+          promises.push(Promise.resolve(cachedTrainData));
+        }
+        
+        if (!cachedStopsData) {
+          promises.push(fetchStopsData());
+        } else {
+          promises.push(Promise.resolve(cachedStopsData));
+        }
+        
+        const [trainDataResult, stopsDataResult] = await Promise.all(promises);
+        
+        // Cache the results if they were fetched
+        if (!cachedTrainData) {
+          setCachedData('trainData', trainDataResult);
+        }
+        if (!cachedStopsData) {
+          setCachedData('stopsData', stopsDataResult);
+        }
         
         setTrainData(trainDataResult);
         setStopsData(stopsDataResult);
         
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
-        console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
       }
@@ -36,8 +106,6 @@ export const useTrainData = () => {
       const batchSize = 2000;
       let hasMoreData = true;
 
-      console.log('Starting to fetch all railway data in batches...');
-
       while (hasMoreData) {
         const params = new URLSearchParams({
           where: "1=1", // Get all features, no filtering
@@ -47,8 +115,6 @@ export const useTrainData = () => {
           resultOffset: offset.toString(),
           returnGeometry: "true"
         });
-
-        console.log(`Fetching railway batch starting at offset ${offset}...`);
 
         const response = await fetch(`${apiUrl}?${params.toString()}`);
         
@@ -60,7 +126,6 @@ export const useTrainData = () => {
         
         if (data.features && data.features.length > 0) {
           allFeatures.push(...data.features);
-          console.log(`Fetched ${data.features.length} railway features, total so far: ${allFeatures.length}`);
           
           if (data.features.length < batchSize) {
             hasMoreData = false;
@@ -72,8 +137,6 @@ export const useTrainData = () => {
         }
       }
 
-      console.log(`Finished fetching railway data! Total features: ${allFeatures.length}`);
-       
       return {
         type: 'FeatureCollection' as const,
         features: allFeatures
@@ -89,8 +152,6 @@ export const useTrainData = () => {
       const batchSize = 2000;
       let hasMoreData = true;
 
-      console.log('Starting to fetch all stops/stations data in batches...');
-
       while (hasMoreData) {
         const params = new URLSearchParams({
           where: "1=1", // Get all features, no filtering
@@ -100,8 +161,6 @@ export const useTrainData = () => {
           resultOffset: offset.toString(),
           returnGeometry: "true"
         });
-
-        console.log(`Fetching stops batch starting at offset ${offset}...`);
 
         const response = await fetch(`${apiUrl}?${params.toString()}`);
         
@@ -113,7 +172,6 @@ export const useTrainData = () => {
         
         if (data.features && data.features.length > 0) {
           allFeatures.push(...data.features);
-          console.log(`Fetched ${data.features.length} stops features, total so far: ${allFeatures.length}`);
           
           if (data.features.length < batchSize) {
             hasMoreData = false;
@@ -125,16 +183,6 @@ export const useTrainData = () => {
         }
       }
 
-      console.log(`Finished fetching stops data! Total features: ${allFeatures.length}`);
-      
-      // Log breakdown of what we got
-      const typeCounts = allFeatures.reduce((acc: any, f: any) => {
-        const type = f.properties.feature_type_code;
-        acc[type] = (acc[type] || 0) + 1;
-        return acc;
-      }, {});
-      console.log('Stops feature type breakdown:', typeCounts);
-      
       return {
         type: 'FeatureCollection' as const,
         features: allFeatures

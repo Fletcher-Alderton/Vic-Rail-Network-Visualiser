@@ -6,7 +6,7 @@ import { useTheme } from 'next-themes';
 
 import { Button } from '@/components/ui/button';
 
-export function ThemeToggle() {
+const ThemeToggle = React.memo(() => {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
@@ -39,4 +39,6 @@ export function ThemeToggle() {
       <span className="sr-only">Toggle theme</span>
     </Button>
   );
-} 
+});
+
+export { ThemeToggle }; 
